@@ -17,6 +17,8 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'http://localhost:3000',
+    'https://rainbow-selkie-73f7b9.netlify.app',
+    /^https:\/\/.*\.netlify\.app$/, // Allows all Netlify deployments (previews, production)
     /^http:\/\/192\.168\./,
     /^http:\/\/10\./,
   ],
