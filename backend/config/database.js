@@ -4,19 +4,32 @@
 const knex = require('knex');
 const path = require('path');
 const fs   = require('fs');
+const { URL } = require('url');
 
 const isProduction = process.env.NODE_ENV === 'production' || process.env.DATABASE_URL;
 
 let db;
 
 if (isProduction) {
-  // Production: Connect to Supabase / PostgreSQL
   console.log('[DB] Connecting to Cloud PostgreSQL (Supabase)...');
+  
+  // Extract hostname from DATABASE_URL to pass as SNI servername
+  let hostname = '';
+  try {
+    const parsedUrl = new URL(process.env.DATABASE_URL);
+    hostname = parsedUrl.hostname;
+  } catch (err) {
+    console.error('[DB] Failed to parse DATABASE_URL hostname:', err.message);
+  }
+
   db = knex({
     client: 'pg',
     connection: {
       connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false } // Required for Supabase/Render SSL connections
+      ssl: {
+        rejectUnauthorized: false,
+        servername: hostname // Forces SNI to be sent, fixing the (ENOIDENTIFIER) error
+      }
     },
     pool: { min: 2, max: 10 }
   });
@@ -52,11 +65,9 @@ async function initializeSchema() {
       table.text('specs').nullable();
       table.text('description').nullable();
       table.text('status').notNullable().defaultTo('Working');
-      // PostgreSQL handles default timestamps slightly differently, db.fn.now() is universal
       table.timestamp('created_at').defaultTo(db.fn.now());
     });
 
-    // Create index on asset_number for fast lookups
     await db.schema.table('equipment', (table) => {
       table.index(['asset_number'], 'idx_equipment_asset_number');
     });
