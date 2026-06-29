@@ -1,12 +1,14 @@
 // src/api/equipment.js
-// Axios-based API client for all equipment operations.
-// All calls point to the Node.js backend at localhost:3001.
+// Axios-based API client pointing to the live Render backend
 
 import axios from 'axios';
 
+// Connects to the live Render backend API
+const API_BASE_URL = 'https://voltsync-api.onrender.com/api';
+
 const API = axios.create({
-  baseURL: 'http://localhost:3001/api',
-  timeout: 15000,
+  baseURL: API_BASE_URL,
+  timeout: 25000, // Increased timeout for Render free tier spin-up
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -40,9 +42,9 @@ export const updateEquipment = (assetNumber, payload) =>
 export const deleteEquipment = (assetNumber) =>
   API.delete(`/equipment/${assetNumber}`).then((r) => r.data.data);
 
-/** Trigger PDF download — opens in new tab / browser download. */
+/** Trigger PDF download. */
 export const downloadQrPdf = () => {
-  window.open('http://localhost:3001/api/download-qrs', '_blank');
+  window.open(`${API_BASE_URL}/download-qrs`, '_blank');
 };
 
 /** Health check. */
